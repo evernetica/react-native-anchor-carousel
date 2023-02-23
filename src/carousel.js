@@ -4,7 +4,7 @@ import React, {
   useImperativeHandle,
   useRef,
   useState,
-  forwardRef
+  forwardRef,
 } from 'react';
 import { Animated, StyleSheet, Dimensions, FlatList } from 'react-native';
 
@@ -12,7 +12,7 @@ const { width: windowWidth } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {},
-  itemContainer: { justifyContent: 'center' }
+  itemContainer: { justifyContent: 'center' },
 });
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
@@ -65,7 +65,8 @@ function Carousel(props, ref) {
   });
 
   useImperativeHandle(ref, () => ({
-    scrollToIndex: scrollToIndex
+    currentIndex: currentIndexRef.current,
+    scrollToIndex: scrollToIndex,
   }));
 
   function isLastItem(index) {
@@ -80,7 +81,7 @@ function Carousel(props, ref) {
     return {
       offset: getItemOffset(index),
       length: itemWidth,
-      index
+      index,
     };
   }
 
@@ -89,9 +90,9 @@ function Carousel(props, ref) {
       [{ nativeEvent: { contentOffset: { x: xOffsetRef.current } } }],
       {
         useNativeDriver: true,
-        listener: event => {
+        listener: (event) => {
           scrollXRef.current = event.nativeEvent.contentOffset.x;
-        }
+        },
       }
     );
   }
@@ -100,13 +101,14 @@ function Carousel(props, ref) {
     if (index < 0 || index >= dataLength) {
       return;
     }
-    onScrollEnd && onScrollEnd(data[index], index);
     currentIndexRef.current = index;
+    onScrollEnd && onScrollEnd(data[index], index);
+
     setTimeout(() => {
       scrollViewRef.current &&
         scrollViewRef.current.scrollToOffset({
           offset: getItemOffset(index),
-          animated: true
+          animated: true,
         });
     });
   }
@@ -117,7 +119,6 @@ function Carousel(props, ref) {
   }
 
   function handleOnScrollEndDrag() {
-    onScrollEndDrag && onScrollEndDrag();
     if (scrollXRef.current < 0) {
       return;
     }
@@ -128,8 +129,10 @@ function Carousel(props, ref) {
       return;
     }
     if (scrollDistance < 0) {
+      onScrollEndDrag && onScrollEndDrag(currentIndexRef.current - 1);
       scrollToIndex(currentIndexRef.current - 1);
     } else {
+      onScrollEndDrag && onScrollEndDrag(currentIndexRef.current + 1);
       scrollToIndex(currentIndexRef.current + 1);
     }
   }
@@ -201,18 +204,18 @@ function Carousel(props, ref) {
     const animatedOpacity = {
       opacity: xOffsetRef.current.interpolate({
         inputRange: [startPoint, midPoint, endPoint],
-        outputRange: [inActiveOpacity, 1, inActiveOpacity]
-      })
+        outputRange: [inActiveOpacity, 1, inActiveOpacity],
+      }),
     };
     const animatedScale = {
       transform: [
         {
           scale: xOffsetRef.current.interpolate({
             inputRange: [startPoint, midPoint, endPoint],
-            outputRange: [inActiveScale, 1, inActiveScale]
-          })
-        }
-      ]
+            outputRange: [inActiveScale, 1, inActiveScale],
+          }),
+        },
+      ],
     };
     return { ...animatedOpacity, ...animatedScale };
   }
@@ -241,7 +244,7 @@ function Carousel(props, ref) {
           itemContainerStyle,
           { width: itemWidth },
           getItemMarginStyle(index),
-          getItemAnimatedStyle(index)
+          getItemAnimatedStyle(index),
         ]}
       >
         {renderItem({ item, index })}
