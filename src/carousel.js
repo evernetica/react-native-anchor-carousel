@@ -280,8 +280,6 @@ function Carousel(props, ref) {
     );
   }
 
-  console.log('Carousel', 'vertical', vertical)
-
   return (
     <AnimatedFlatList
       {...otherProps}
